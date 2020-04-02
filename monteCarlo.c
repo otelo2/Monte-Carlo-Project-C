@@ -11,11 +11,13 @@ int main(int argc, char *argv[])
     //Create the base square (2r)
     int squareSide = 10;
     int squareArea = squareSide*squareSide;
+    printf("Square:\n Side: %d. Area: %d\n",squareSide,squareArea);
 
     //Create the circle (r)
     //area for a circle = pi*(r*r)
     float sphereRadius = 10/2; //This is r
     float sphereArea = 3.14159 * (sphereRadius*sphereRadius);
+    printf("Sphere:\n Radius: %f. Area %0.4f\n",sphereRadius,sphereArea);
 
     //Fork a team of threads giving then their own copies of variables
     #pragma omp parallel private(nthreads, tid)
@@ -24,6 +26,7 @@ int main(int argc, char *argv[])
         //where N is the max num of points
         int N=500;
         pointsAmount = rand() % (N+1); 
+        printf("Amount of points: %d",pointsAmount);
 
         //obtain thread number
         tid= omp_get_thread_num();
