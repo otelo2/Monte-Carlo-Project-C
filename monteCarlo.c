@@ -26,11 +26,11 @@ int main(int argc, char *argv[])
         //where N is the max num of points
         int N=500;
         pointsAmount = rand() % (N+1); 
-        printf("Amount of points: %d",pointsAmount);
+        printf("Amount of points: %d\n",pointsAmount);
 
         //obtain thread number
         tid= omp_get_thread_num();
-        printf("This is thread %d\n",tid);
+        printf("\tThis is thread %d\n",tid);
         
         //only master thread does this
         if(tid==0)
