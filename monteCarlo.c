@@ -31,13 +31,11 @@ struct Points create_points()
     
 
     //Set the amount of points
-    interval = 500; //I can set this manually so I can play around with the ammount of points.
+    interval = 1000; //I can set this manually so I can play around with the ammount of points.
     pointsAmount = rand() % (interval+1);
 
     for(int i=0; i<pointsAmount; i++)
     {
-        //this will only work if a random number is generated each cycle, lets pray.
-
         //Random number from 0 to 360, thus this is the angle from the center of the circle.
         angle = rand() % (360+1);
 
@@ -69,14 +67,18 @@ struct Points create_points()
 
 
 //Takes the amount of points inside and outside the circle and runs the formula to aproximate pi.
-int calculate_pi(struct Points points)
+float calculate_pi(struct Points points)
 {
     //Formula given by text:
     // π = 4 X (number of points in the circle) / (total number of points) 
     float pi;
+    float dividend;
 
-    pi = 4 * (points.insideCircle) / (points.outsideCircle);
+    //Convert int points to float to use correctly for division.
+    dividend = (float)points.insideCircle / (points.insideCircle + points.outsideCircle);
 
+    //do the formula
+    pi = 4 * dividend;
     return pi;
 }
 
