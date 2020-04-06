@@ -62,7 +62,7 @@ struct Points create_points()
     }
 
     //Print the final number of points
-    printf("For %d points:\n \t%d are inside the circle\n \t%d are outside the circle", pointsAmount, points.insideCircle, points.outsideCircle);
+    printf("For %d points:\n \t%d are inside the circle\n \t%d are outside the circle\n", pointsAmount, points.insideCircle, points.outsideCircle);
 
     return points;
 }
@@ -95,23 +95,23 @@ int main(int argc, char *argv[])
     //area for a circle = pi*(r*r)
     circleRadius = squareSide/2; //This is r
     circleArea = 3.14159 * (circleRadius*circleRadius);
-    printf("Sphere:\n Radius: %d. Area %0.4f\n",circleRadius,circleArea);
+    printf("Sphere:\n Radius: %d. Area %0.4f\n\n",circleRadius,circleArea);
 
     //Fork a team of threads giving then their own copies of variables
     #pragma omp parallel private(nthreads, tid)
     {
+        //obtain thread number
+        tid= omp_get_thread_num();
+        printf("\t\t\tThis is thread %d\n",tid);
+
         //Create a random amount of points and if they are inside or outside the circle
         //then
         //Calculate pi using Monte Carlo formula
         pi = calculate_pi(create_points());
 
         //Print the result.
-        printf("PI aproximation: %f",pi);
+        printf("PI aproximation: %f\n\n",pi);
 
-        //obtain thread number
-        tid= omp_get_thread_num();
-        printf("\tThis is thread %d\n",tid);
-        
         //only master thread does this
         if(tid==0)
         {
