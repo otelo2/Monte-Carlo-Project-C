@@ -74,7 +74,7 @@ int calculate_pi(struct Points points)
     //Formula given by text:
     // π = 4 X (number of points in the circle) / (total number of points) 
     float pi;
-    
+
     pi = 4 * (points.insideCircle) / (points.outsideCircle);
 
     return pi;
@@ -84,6 +84,7 @@ int main(int argc, char *argv[])
 {
     srand (time(NULL)); //set seed for random number generator
     int nthreads, tid;
+    float pi;
 
     //Give values to the base square (2r)
     squareSide = 10;
@@ -99,9 +100,13 @@ int main(int argc, char *argv[])
     //Fork a team of threads giving then their own copies of variables
     #pragma omp parallel private(nthreads, tid)
     {
-        //Create a random amount of points
-        //where N is the max num of points
-        create_points();
+        //Create a random amount of points and if they are inside or outside the circle
+        //then
+        //Calculate pi using Monte Carlo formula
+        pi = calculate_pi(create_points());
+
+        //Print the result.
+        printf("PI aproximation: %f",pi);
 
         //obtain thread number
         tid= omp_get_thread_num();
