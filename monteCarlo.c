@@ -7,23 +7,33 @@
 
 //Declare global variables for our shapes properties
 int squareSide, squareArea;
-int sphereRadius; 
-float sphereArea;
+int circleRadius; 
+float circleArea;
 
 //"Threads will count the number of points that occur within the circle and store that result in a global variable"
 int pointsAmount;
 
-void create_points()
+//So its easier to pass the values to the calculate_pi function and return them from the create_points.
+struct Points
+    {
+        int insideCircle, outsideCircle; 
+    };
+
+struct Points create_points()
 {
     srand (time(NULL)); //set seed for random number generator
-    int pointsAmount, interval;
+    int interval;
     int angle, position; //Properties of the point
     float angleRadians;
     float maxLenght;
     int intMaxLen;
-    int insideCircle=0,outsideCircle=0; //Counter of points inside and out the circle.
-    interval = 500; //I can set this manually so I can play around with the ammount of points.
+    struct Points points = {0,0}; //initialize counter values as 0 
+    
+
+    //Set the amount of points
+    interval = 50; //I can set this manually so I can play around with the ammount of points.
     pointsAmount = rand() % (interval+1);
+
     for(int i=0; i<pointsAmount; i++)
     {
         //this will only work if a random number is generated each cycle, lets pray.
@@ -36,7 +46,7 @@ void create_points()
         angleRadians= 0.0174532925*angle;
 
         //Obtain the max possible lenght given the angle
-        maxLenght = ((cos(angleRadians))*sphereRadius);
+        maxLenght = ((cos(angleRadians))*circleRadius);
 
         //round the maxLenght to use as an integer for the rand()
         int intMaxLen = roundf(maxLenght);
@@ -45,14 +55,29 @@ void create_points()
         position = (rand() % (intMaxLen - (-intMaxLen) + 1)) + intMaxLen;
 
         //Check if the point generated is inside or outside the circle.
-        if((position>=(-sphereRadius)) && (position<=sphereRadius))
-            insideCircle++;
+        if((position>=(-circleRadius)) && (position<=circleRadius))
+            points.insideCircle++;
         else
-            outsideCircle++;
+            points.outsideCircle++;
     }
 
     //Print the final number of points
-    printf("For %d points:\n \t%d are inside the circle\n \t%d are outside the circle",pointsAmount,insideCircle,outsideCircle);
+    printf("For %d points:\n \t%d are inside the circle\n \t%d are outside the circle", pointsAmount, points.insideCircle, points.outsideCircle);
+
+    return points;
+}
+
+
+//Takes the amount of points inside and outside the circle and runs the formula to aproximate pi.
+int calculate_pi(struct Points points)
+{
+    //Formula given by text:
+    // π = 4 X (number of points in the circle) / (total number of points) 
+    float pi;
+    
+    pi = 4 * (points.insideCircle) / (points.outsideCircle);
+
+    return pi;
 }
 
 int main(int argc, char *argv[])
@@ -67,18 +92,16 @@ int main(int argc, char *argv[])
 
     //Give values to the circle (r)
     //area for a circle = pi*(r*r)
-    sphereRadius = squareSide/2; //This is r
-    sphereArea = 3.14159 * (sphereRadius*sphereRadius);
-    printf("Sphere:\n Radius: %d. Area %0.4f\n",sphereRadius,sphereArea);
+    circleRadius = squareSide/2; //This is r
+    circleArea = 3.14159 * (circleRadius*circleRadius);
+    printf("Sphere:\n Radius: %d. Area %0.4f\n",circleRadius,circleArea);
 
     //Fork a team of threads giving then their own copies of variables
     #pragma omp parallel private(nthreads, tid)
     {
         //Create a random amount of points
         //where N is the max num of points
-        int N=500;
-        pointsAmount = rand() % (N+1); 
-        printf("Amount of points: %d\n",pointsAmount);
+        create_points();
 
         //obtain thread number
         tid= omp_get_thread_num();
