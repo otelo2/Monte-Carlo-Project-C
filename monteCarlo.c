@@ -19,7 +19,7 @@ struct Points
         int insideCircle, outsideCircle; 
     };
 
-struct Points create_points()
+struct Points create_points(int userInterval)
 {
     srand((time(NULL)) ^ omp_get_thread_num()); //source: https://www.viva64.com/en/b/0012/
     int interval;
@@ -31,7 +31,8 @@ struct Points create_points()
     
 
     //Set the amount of points
-    interval = 1000; //I can set this manually so I can play around with the ammount of points.
+    //interval = 10; //set the interval to a fixed ammunt
+    interval = userInterval;
     pointsAmount = rand() % (interval+1);
 
     for(int i=0; i<pointsAmount; i++)
@@ -85,8 +86,12 @@ float calculate_pi(struct Points points)
 int main(int argc, char *argv[])
 {
     srand (time(NULL)); //set seed for random number generator
-    int nthreads, tid;
+    int nthreads, tid, userInterval;
     float pi;
+
+    //user sets the amount of points to test
+    printf("\n Type the max amount of points to use \n");
+    scanf("%d",&userInterval);
 
     //Give values to the base square (2r)
     squareSide = 10;
@@ -110,17 +115,10 @@ int main(int argc, char *argv[])
         //Create a random amount of points and if they are inside or outside the circle
         //then
         //Calculate pi using Monte Carlo formula
-        pi = calculate_pi(create_points());
+        pi = calculate_pi(create_points(userInterval));
 
         //Print the result.
         printf("PI aproximation: %0.5f\n\n",pi);
-
-        //only master thread does this
-        if(tid==0)
-        {
-            nthreads = omp_get_num_threads();
-            printf("Number of threads= %d\n", nthreads);
-        }
 
     } //All threads join master thread and disband
 
