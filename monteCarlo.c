@@ -21,7 +21,7 @@ struct Points
 
 struct Points create_points()
 {
-    srand (time(NULL)); //set seed for random number generator
+    srand((time(NULL)) ^ omp_get_thread_num()); //source: https://www.viva64.com/en/b/0012/
     int interval;
     int angle, position; //Properties of the point
     float angleRadians;
@@ -31,7 +31,7 @@ struct Points create_points()
     
 
     //Set the amount of points
-    interval = 50; //I can set this manually so I can play around with the ammount of points.
+    interval = 500; //I can set this manually so I can play around with the ammount of points.
     pointsAmount = rand() % (interval+1);
 
     for(int i=0; i<pointsAmount; i++)
@@ -95,7 +95,8 @@ int main(int argc, char *argv[])
     //area for a circle = pi*(r*r)
     circleRadius = squareSide/2; //This is r
     circleArea = 3.14159 * (circleRadius*circleRadius);
-    printf("Sphere:\n Radius: %d. Area %0.4f\n\n",circleRadius,circleArea);
+    printf("Sphere:\n Radius: %d. Area %0.4f\n",circleRadius,circleArea);
+    printf("-----------------------\n\n");
 
     //Fork a team of threads giving then their own copies of variables
     #pragma omp parallel private(nthreads, tid)
@@ -110,7 +111,7 @@ int main(int argc, char *argv[])
         pi = calculate_pi(create_points());
 
         //Print the result.
-        printf("PI aproximation: %f\n\n",pi);
+        printf("PI aproximation: %0.5f\n\n",pi);
 
         //only master thread does this
         if(tid==0)
