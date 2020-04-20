@@ -23,9 +23,11 @@ struct Points create_points(int userInterval)
 {
     srand((time(NULL)) ^ omp_get_thread_num()); //source: https://www.viva64.com/en/b/0012/
     int interval;
-    int angle, position; //Properties of the point
+    int angle; 
+    //int position; //Properties of the point
     float angleRadians;
     float maxLenght;
+    float position;
     int intMaxLen;
     struct Points points = {0,0}; //initialize counter values as 0 
     
@@ -33,7 +35,10 @@ struct Points create_points(int userInterval)
     //Set the amount of points
     //interval = 10; //set the interval to a fixed ammunt
     interval = userInterval;
-    pointsAmount = rand() % (interval+1);
+    pointsAmount = rand() % (interval)+1;
+    
+     //MAX INT VALUE
+    pointsAmount=2147483647; 
 
     for(int i=0; i<pointsAmount; i++)
     {
@@ -42,16 +47,22 @@ struct Points create_points(int userInterval)
 
         //Convert the angle to radians for use in trigonometric functions
         //soucre: https://www.dummies.com/programming/c/trigonometry-for-c-programming/
-        angleRadians= 0.0174532925*angle;
+        angleRadians= 0.0174532925*normalize_angle(angle);
 
         //Obtain the max possible lenght given the angle
-        maxLenght = ((cos(angleRadians))*circleRadius);
+        maxLenght = (circleRadius/(cos(angleRadians)));
 
         //round the maxLenght to use as an integer for the rand()
         int intMaxLen = roundf(maxLenght);
 
         //Set the position of the number to [-intMaxLen, intMaxLen]
-        position = (rand() % (intMaxLen - (-intMaxLen) + 1)) + intMaxLen;
+        //This only generates an int
+        //position = (rand() % (intMaxLen - (-intMaxLen) + 1)) + intMaxLen;
+        //printf("\nPosition is %d with angle %d and max len of %f \n",position,angle, maxLenght);
+
+        //Generate position as a float to increase accuracy
+        position = ((float)rand()/(float)(RAND_MAX)) * maxLenght;
+        //printf("\nPosition is %f with angle %d and max len of %f with circle radius of %d \n",position,angle,maxLenght,circleRadius);
 
         //Check if the point generated is inside or outside the circle.
         if((position>=(-circleRadius)) && (position<=circleRadius))
@@ -66,6 +77,48 @@ struct Points create_points(int userInterval)
     return points;
 }
 
+//The function to get the max length will only work with angles from [0,45] so we need to find the equivalent angle in that range for any given angle >45 and <=360
+int normalize_angle(int angle)
+{
+    int newAngle=999;
+    if(angle>0 && angle<=45)
+        return angle;
+    else if (angle>45 && angle<=90)
+    {
+        newAngle=(angle - (45*2))*(-1);
+        return newAngle;
+    }
+    else if (angle>90 && angle<=135)
+    {
+        newAngle=(angle - (45*2));
+        return newAngle;
+    }
+    else if (angle>135 && angle<=180)
+    {
+        newAngle=(angle - (45*4))*(-1);
+        return newAngle;
+    }
+    else if (angle>180 && angle<=225)
+    {
+        newAngle=(angle - (45*4));
+        return newAngle;
+    }
+    else if (angle>225 && angle<=270)
+    {
+        newAngle=(angle - (45*6))*(-1);
+        return newAngle;
+    }
+    else if (angle>270 && angle<=315)
+    {
+        newAngle=(angle - (45*6));
+        return newAngle;
+    }
+    else if (angle>315 && angle<=360)
+    {
+        newAngle=(angle - (45*8))*(-1);
+        return newAngle;
+    }
+}
 
 //Takes the amount of points inside and outside the circle and runs the formula to aproximate pi.
 float calculate_pi(struct Points points)
