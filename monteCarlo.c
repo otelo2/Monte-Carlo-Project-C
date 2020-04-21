@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 #include <omp.h>
+#include <time.h>
 
 //Best source: https://www.youtube.com/watch?v=PLURfYr-rdU
 
@@ -23,7 +23,7 @@ struct Points
 
 struct Points create_points(int userInterval, int pointsAm)
 {
-    srand((time(NULL)) ^ omp_get_thread_num()); //source: https://www.viva64.com/en/b/0012/
+    srand(time(NULL)); 
     int interval;
     float posX;
     float posY;
@@ -43,6 +43,7 @@ struct Points create_points(int userInterval, int pointsAm)
      //MAX INT VALUE
     //pointsAmount=2147483647; 
 
+    #pragma omp parallel for shared (posX,posY) 
     for(int i=0; i<pointsAmount; i++)
     {
         //assign a random float value from [0,1]
@@ -91,7 +92,7 @@ float calculate_pi(struct Points points)
 int main(int argc, char *argv[])
 {
     srand (time(NULL)); //set seed for random number generator
-    int nthreads, tid, userInterval=1, selection;
+    int nthreads, tid, userInterval=1, selection, hilos;
     float pi;
 
     //ask user for specific value or random value inside interval
@@ -111,6 +112,10 @@ int main(int argc, char *argv[])
         scanf("%d",&pointsAmount);
     }
     
+    //Set the amount of threads to whatever the user inputs
+    printf("\n Select the amount of threads to test \n");
+    scanf("%d",&hilos);
+    omp_set_num_threads(hilos);
 
     //Give values to the base square (2r)
     squareSide = 2;
@@ -124,12 +129,11 @@ int main(int argc, char *argv[])
     printf("Sphere:\n Radius: %d. Area %0.4f\n",circleRadius,circleArea);
     printf("-----------------------\n\n");
 
-    //Fork a team of threads giving then their own copies of variables
-    #pragma omp parallel private(nthreads, tid)
+    //#pragma omp parallel private(nthreads, tid)
+    clock_t begin = clock();
     {
-        //obtain thread number
-        tid= omp_get_thread_num();
-        printf("\t\t\tThis is thread %d\n",tid);
+
+        printf("\t\t\tUsing %d threads\n",hilos);
 
         //Create a random amount of points and if they are inside or outside the circle
         //then
@@ -137,9 +141,13 @@ int main(int argc, char *argv[])
         pi = calculate_pi(create_points(userInterval,pointsAmount));
 
         //Print the result.
-        printf("PI aproximation: %0.5f\n\n",pi);
+        printf("PI aproximation: %f\n\n",pi);
 
-    } //All threads join master thread and disband
+    } 
+    clock_t end = clock();
+    double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+    //Print the run time
+    printf("\n\nRun time: %f seconds\n",time_spent);
 
     return 0;
 }
