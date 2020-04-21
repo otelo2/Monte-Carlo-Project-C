@@ -3,7 +3,7 @@
 #include <math.h>
 #include <omp.h>
 
-//TODO: See if we really need the areas, i dont think so.
+//Best source: https://www.youtube.com/watch?v=PLURfYr-rdU
 
 //Declare global variables for our shapes properties
 int squareSide, squareArea;
@@ -11,9 +11,8 @@ int circleRadius;
 float circleArea;
 
 //"Threads will count the number of points that occur within the circle and store that result in a global variable"
-int pointsAmount;
+int pointsAmount=-999;
 
-float normalize_angle(float angle);
 float float_rand(float min, float max);
 
 //So its easier to pass the values to the calculate_pi function and return them from the create_points.
@@ -22,56 +21,39 @@ struct Points
         int insideCircle, outsideCircle; 
     };
 
-struct Points create_points(int userInterval)
+struct Points create_points(int userInterval, int pointsAm)
 {
     srand((time(NULL)) ^ omp_get_thread_num()); //source: https://www.viva64.com/en/b/0012/
     int interval;
-    float angle; 
-    //int position; //Properties of the point
-    float angleRadians;
-    float maxLenght;
-    float position;
-    int intMaxLen;
+    float posX;
+    float posY;
+
     struct Points points = {0,0}; //initialize counter values as 0 
     
-
-    //Set the amount of points
-    //interval = 10; //set the interval to a fixed ammunt
-    interval = userInterval;
-    pointsAmount = rand() % (interval)+1;
+    //Chech if pointsAmount is different from default value, if it is then use that fixed value.
+    if(pointsAm!=-999)
+        pointsAmount=pointsAm;
+    else
+    {
+        //Set the amount of points
+        interval = userInterval;
+        pointsAmount = rand() % (interval)+1;
+    }
     
      //MAX INT VALUE
     //pointsAmount=2147483647; 
 
     for(int i=0; i<pointsAmount; i++)
     {
-        //Random number from 0 to 360, thus this is the angle from the center of the circle.
-        //angle = rand() % (360+1);
-        //angle = ((float)rand()/(float)(RAND_MAX)) * 360+1;
-        angle = float_rand(0.0,360.0);
+        //assign a random float value from [0,1]
+        posX = float_rand(0,1);
+        posY = float_rand(0,1);
 
-        //Convert the angle to radians for use in trigonometric functions
-        //soucre: https://www.dummies.com/programming/c/trigonometry-for-c-programming/
-        angleRadians= (3.141592/180.0)*normalize_angle(angle);
-
-        //Obtain the max possible lenght given the angle
-        maxLenght = (circleRadius/(cos(angleRadians)));
-
-        //round the maxLenght to use as an integer for the rand()
-        //int intMaxLen = roundf(maxLenght);
-
-        //Set the position of the number to [-intMaxLen, intMaxLen]
-        //This only generates an int
-        //position = (rand() % (intMaxLen - (-intMaxLen) + 1)) + intMaxLen;
-        //printf("\nPosition is %d with angle %d and max len of %f \n",position,angle, maxLenght);
-
-        //Generate position as a float to increase accuracy
-        //position = ((float)rand()/(float)(RAND_MAX)) * ((intMaxLen - (-intMaxLen) + 1) + intMaxLen);
-        position = float_rand(-maxLenght,maxLenght);
-        //printf("\nPosition is %f with angle %f and max len of %f with circle radius of %d \n",position,angle,maxLenght,circleRadius);
+        //Print the coordinates of each point (commented out in final code for performance reasons)
+        //printf("\n(%f) , (%f)\n",posX,posY);
 
         //Check if the point generated is inside or outside the circle.
-        if((position>=(-circleRadius)) && (position<=circleRadius))
+        if(((posX*posX) + (posY*posY)) < 1)
             points.insideCircle++;
         else
             points.outsideCircle++;
@@ -81,49 +63,6 @@ struct Points create_points(int userInterval)
     printf("For %d points:\n \t%d are inside the circle\n \t%d are outside the circle\n", pointsAmount, points.insideCircle, points.outsideCircle);
 
     return points;
-}
-
-//The function to get the max length will only work with angles from [0,45] so we need to find the equivalent angle in that range for any given angle >45 and <=360
-float normalize_angle(float angle)
-{
-    float newAngle=angle;
-    if(angle>0 && angle<=45)
-        return angle;
-    else if (angle>45 && angle<=90)
-    {
-        newAngle=(angle - (45*2))*(-1);
-        return newAngle;
-    }
-    else if (angle>90 && angle<=135)
-    {
-        newAngle=(angle - (45*2));
-        return newAngle;
-    }
-    else if (angle>135 && angle<=180)
-    {
-        newAngle=(angle - (45*4))*(-1);
-        return newAngle;
-    }
-    else if (angle>180 && angle<=225)
-    {
-        newAngle=(angle - (45*4));
-        return newAngle;
-    }
-    else if (angle>225 && angle<=270)
-    {
-        newAngle=(angle - (45*6))*(-1);
-        return newAngle;
-    }
-    else if (angle>270 && angle<=315)
-    {
-        newAngle=(angle - (45*6));
-        return newAngle;
-    }
-    else if (angle>315 && angle<=360)
-    {
-        newAngle=(angle - (45*8))*(-1);
-        return newAngle;
-    }
 }
 
 //Generate random float from range https://stackoverflow.com/questions/13408990/how-to-generate-random-float-number-in-c
@@ -152,17 +91,31 @@ float calculate_pi(struct Points points)
 int main(int argc, char *argv[])
 {
     srand (time(NULL)); //set seed for random number generator
-    int nthreads, tid, userInterval;
+    int nthreads, tid, userInterval=1, selection;
     float pi;
 
-    //user sets the amount of points to test
-    printf("\n Type the max amount of points to use \n");
-    scanf("%d",&userInterval);
+    //ask user for specific value or random value inside interval
+    printf("\n1. Give interval from which a random amount of points will be selected\n2. Input an specific amount of points\n");
+    scanf("%d",&selection);
+
+    //Check selection and do corresponding action
+    if(selection==1)
+    {
+        //user sets the amount of points to test
+        printf("\n Type the max amount of points to use \n");
+        scanf("%d",&userInterval);
+    }
+    else
+    {
+        printf("\n Input the amount of points to use \n");
+        scanf("%d",&pointsAmount);
+    }
+    
 
     //Give values to the base square (2r)
     squareSide = 2;
     squareArea = squareSide*squareSide;
-    printf("Square:\n Side: %d. Area: %d\n",squareSide,squareArea);
+    printf("\nSquare:\n Side: %d. Area: %d\n",squareSide,squareArea);
 
     //Give values to the circle (r)
     //area for a circle = pi*(r*r)
@@ -181,7 +134,7 @@ int main(int argc, char *argv[])
         //Create a random amount of points and if they are inside or outside the circle
         //then
         //Calculate pi using Monte Carlo formula
-        pi = calculate_pi(create_points(userInterval));
+        pi = calculate_pi(create_points(userInterval,pointsAmount));
 
         //Print the result.
         printf("PI aproximation: %0.5f\n\n",pi);
